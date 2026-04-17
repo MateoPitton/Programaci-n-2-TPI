@@ -39,10 +39,14 @@ Celda* Grilla::getCelda(int x, int y)
     return nullptr;
   return celda[y * maxX + x];
 }
-void Grilla::setCelda(int x, int y, Celda* cel)
+void Grilla::setCelda(Celda* cel)
 {
+  int x = cel->getXPos();
+  int y = cel->getYPos();
   if(x >= maxX || y >= maxY)
     return;
+  if(celda[y * maxX + x] != nullptr)
+    delete celda[y * maxX + x];
   celda[y * maxX + x] = cel;
   return;
 }

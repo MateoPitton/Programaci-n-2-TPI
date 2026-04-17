@@ -18,8 +18,9 @@ class AdminTextura
 
 int cargarMapa(Grilla &grilla, const char* nomArch, sf::Texture *tex)
 {
+  const int tamFila = grilla.getMaxX();
   int i = 0;
-  char tipoCelda[5]; 
+  char tipoCelda; 
   int error = 0;
   FILE *archMapa = nullptr;
   archMapa = fopen(nomArch, "rb");
@@ -28,14 +29,20 @@ int cargarMapa(Grilla &grilla, const char* nomArch, sf::Texture *tex)
     error = -1;
     return error;
   }
-  while(i < (grilla.getMaxX() * grilla.getMaxY()))
+  while(fread(&tipoCelda, 1, 1, archMapa) && (i < (grilla.getMaxX() * grilla.getMaxY())))
   {
-    fread(tipoCelda, 1, 1, archMapa);
-    printf("celda: %x %ld\n", tipoCelda[0], ftell(archMapa));
-    if(tipoCelda[0] == '0')
+    //printf("celda: %x %ld\n", tipoCelda, ftell(archMapa));
+    switch(tipoCelda)
     {
-      grilla.setCelda(i % grilla.getMaxX(), i / grilla.getMaxX(), new DefaultCelda(i % grilla.getMaxX(), i / grilla.getMaxX(), 255, tex[0]));
-      i++;
+      case '\n':
+      case '\r':
+        break;
+      case '0':
+        grilla.setCelda(new DefaultCelda(i % tamFila, i / tamFila, 255, tex[0]));
+        i++;
+        break;
+      default:
+        i++;
     }
   }
   error = fclose(archMapa);
@@ -56,14 +63,8 @@ int main()
   err = texCelda[0].loadFromFile("Tiles/defaulttile.bmp");
   if(!err)
     return -1;
-  Grilla tablero(32, 4, 4);
+  Grilla tablero(64, 4, 4);
   cargarMapa(tablero, "testmap.txt",texCelda);
-  //Acá se declaran objetos que se pueden dibujar con window.draw(objeto);
-//  const sf::Font font("C:/WINDOWS/FONTS/CAMBRIA.TTC");
-  //sf::Text text(font, "Gato", 50);  
-  //const sf::Texture texture("sprite.bmp");
-  //sf::Sprite sprite(texCelda[0]);
-  //sf::Vector2<float> s2Pos(100,200);
   while (window.isOpen())
   {
     while (const std::optional<sf::Event> event = window.pollEvent())
@@ -95,7 +96,6 @@ int main()
     }
     //Acá le mandas los comandos a la ventana para que dibuje objetos
     window.clear(sf::Color::Blue); 
-    //window.draw(sprite);
     tablero.render(window);
     window.display();
   }
